@@ -3,7 +3,6 @@ package fifteenpuzzle;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Solver {
 
@@ -15,21 +14,28 @@ public class Solver {
     this.board = board;
     this.n = n;
   }
-
-  public Map<Integer, String> solve() {
+  public boolean solve(Map<Integer, String> resultMap) {
     Map<String, String> prev = new HashMap<>();
-    Map<Integer, String> resultMap = new HashMap<>();
-    Deque<String> queue = new LinkedList<>();
+    Queue<String> queue = new LinkedList<>();
     String initial = getBoardString(board);
     prev.put(initial, "");
     queue.offer(initial);
-    AtomicInteger count = new AtomicInteger(1);
+
     while (!queue.isEmpty()) {
 
       String curr = queue.poll();
       int[] currBoard = getBoardArray(curr);
       if (isSolved(currBoard)) {
-        return resultMap;
+        // Add moves to resultMap
+        String moves = prev.get(curr);
+        String[] moveArr = moves.split(",");
+        for (String move : moveArr) {
+          String[] actualMoves = move.trim().split("\\s+");
+          for (int i = 0; i < actualMoves.length; i++) {
+            resultMap.put(i , actualMoves[i].replace("", " ").trim());
+          }
+        }
+        return true;
       }
 
       int zeroIndex = getZeroIndex(currBoard);
@@ -45,27 +51,25 @@ public class Solver {
         newBoard[newIndex] = 0;
         String newBoardStr = getBoardString(newBoard);
         if (!prev.containsKey(newBoardStr)) {
-
           String move = getMove(newIndex, zeroIndex);
-          String no = String.valueOf(newBoard[zeroIndex]);
-          resultMap.put(count.getAndIncrement(), no +" " +move);
-          prev.put(newBoardStr, prev.get(curr) + move);
+          int value = newBoard[zeroIndex];
+          prev.put(newBoardStr, prev.get(curr) + " " +value + move);
           queue.offer(newBoardStr);
         }
       }
     }
-    return new HashMap<>();
+    return false;
   }
 
   private String getMove(int newIndex, int zeroIndex) {
     if (newIndex - zeroIndex == n) {
-      return "D";
-    } else if (newIndex - zeroIndex == -n) {
       return "U";
+    } else if (newIndex - zeroIndex == -n) {
+      return "D";
     } else if (newIndex - zeroIndex == 1) {
-      return "R";
-    } else {
       return "L";
+    } else {
+      return "R";
     }
   }
 
@@ -122,8 +126,8 @@ public class Solver {
       int[] board = new int[n * n];
       for (int i = 0; i < n; i++) {
         String std = br.readLine();
-        std.replace("   ", " 0 ");
-        String[] row = std.trim().split("\\s+");
+        String dr = std.replace("   ", "  0");
+        String[] row = dr.trim().split("\\s+");
 
         if (row.length < n) {
           String[] newArray = Arrays.copyOf(row, row.length + 1);
@@ -136,19 +140,19 @@ public class Solver {
       }
       br.close();
 
-      // Solve puzzle
       Solver solver = new Solver(board, n);
-      Map<Integer, String> solution = solver.solve();
-
-      // Write output file
-      BufferedWriter bw = new BufferedWriter(new FileWriter(args[1]));
-      Map<Integer, String> sortedMap = new TreeMap<>(solution);
-      for (Entry<Integer, String> entries : sortedMap.entrySet()) {
-        bw.write(entries.getKey()+ " " +entries.getValue());
-        bw.newLine();
+      Map<Integer, String> solution = new TreeMap<>();
+      if (solver.solve(solution)) {
+        // Write output file
+        BufferedWriter bw = new BufferedWriter(new FileWriter(args[1]));
+        for (Entry<Integer, String> entry : solution.entrySet()) {
+          bw.write(entry.getKey() + " " + entry.getValue());
+          bw.newLine();
+        }
+        bw.close();
+      } else  {
+        System.out.println("No solution found.");
       }
-
-      bw.close();
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -47,7 +47,7 @@ public class BoardGen {
 	}
 
 	public static void createBoard2() throws IOException {
-		File f = new File("input.txt");
+		File f = new File("input2.txt");
 		FileWriter fw = new FileWriter(f);
 		fw.write("4\n");
 		fw.write(" 1  2  3  4\n");
@@ -68,7 +68,7 @@ public class BoardGen {
 }
 
 	public static void createBoard3() throws IOException {
-		File f = new File("input1.txt");
+		File f = new File("input3.txt");
 		FileWriter fw = new FileWriter(f);
 		fw.write("7\n");
 		fw.write(" 1  3 10  4  5  6  7\n");
